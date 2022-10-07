@@ -140,7 +140,7 @@ describe("Tests ErgoSum.sol contract", function () {
         });
     });
 
-    describe("Check glorify() function for required conditions",  () => {
+    describe.only("Check glorify() function for required conditions",  () => {
         it('Call glorify function not with the Mercenaries contract | revert => 403', async function () {
             await expect( ergoSum.connect(addr1).glorify(10, '0xpanku')).to.be.revertedWith('403');
         });
@@ -164,7 +164,18 @@ describe("Tests ErgoSum.sol contract", function () {
             await demo20.connect(addr1).mint(10);
             await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("100"));
             await mercenaries.connect(addr1).mint();
+
+            let mercenary = await mercenaries.mercenaries(1);
+            expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+            expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+            expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
             await expect( mercenaries.connect(addr1).glorify(1, '0xPanku', 1,1,1)).to.be.revertedWith('Invalid name');
+
+            mercenary = await mercenaries.mercenaries(1);
+            expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+            expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+            expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
         });
         it('Call glorify with reserved name | revert => Reserved name', async function () {
             await demo20.connect(addr1).mint(10);
@@ -178,7 +189,7 @@ describe("Tests ErgoSum.sol contract", function () {
         });
     });
 
-    describe("Check glorify() - working and complex cases",  () => {
+    describe.only("Check glorify() - working and complex cases",  () => {
 
         it("Working naming flow - 1st time naming \n" +
             "-> Check if name is available with isNameReserved return false \n" +
@@ -257,99 +268,99 @@ describe("Tests ErgoSum.sol contract", function () {
 
         it("Working naming flow - Check the free Lend action is performed for first time naming only. \n" +
             "-> Mint 1 token \n" +
-            "-> Check token_1 creditor_1 = addr0 \n" +
-            "-> Check token_1 creditor_2 = addr0 \n" +
-            "-> Check token_1 creditor_3 = addr0 \n" +
+            "-> Check token_1 creditor1 = addr0 \n" +
+            "-> Check token_1 creditor2 = addr0 \n" +
+            "-> Check token_1 creditor3 = addr0 \n" +
             "-> Set approval to transfert demo20 token \n" +
             "-> Change name to 0xpanku with addr1 and token 1 nominated as free lend action \n" +
-            "-> Check token_1 creditor_1 = addr1 \n" +
-            "-> Check token_1 creditor_2 = addr0 \n" +
-            "-> Check token_1 creditor_3 = addr0 \n" +
+            "-> Check token_1 creditor1 = addr1 \n" +
+            "-> Check token_1 creditor2 = addr0 \n" +
+            "-> Check token_1 creditor3 = addr0 \n" +
             "-> Change name to jambon with addr1 and token 2 nominated as free lend action \n" +
-            "-> Check token_2 creditor_1 = addr0 \n" +
-            "-> Check token_2 creditor_2 = addr0 \n" +
-            "-> Check token_2 creditor_3 = addr0 \n"
+            "-> Check token_2 creditor1 = addr0 \n" +
+            "-> Check token_2 creditor2 = addr0 \n" +
+            "-> Check token_2 creditor3 = addr0 \n"
             , async function () {
 
-            await mercenaries.connect(addr1).mint();
+                await mercenaries.connect(addr1).mint();
 
-            let mercenary = await mercenaries.mercenaries(1);
-            expect(mercenary['creditor_1']).to.equal('0x0000000000000000000000000000000000000000');
-            expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-            expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                let mercenary = await mercenaries.mercenaries(1);
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
-            await demo20.connect(addr1).mint(10);
-            await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
+                await demo20.connect(addr1).mint(10);
+                await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
 
-            await expect(mercenaries.connect(addr1).glorify(1, '0xpanku',1,1,1))
-                .to.emit(ergoSum, 'NomenEstOmen')
-                .withArgs(1, '0xpanku', '' );
+                await expect(mercenaries.connect(addr1).glorify(1, '0xpanku',1,1,1))
+                    .to.emit(ergoSum, 'NomenEstOmen')
+                    .withArgs(1, '0xpanku', '' );
 
-            mercenary = await mercenaries.mercenaries(1);
-            expect(mercenary['creditor_1']).to.equal(addr1.address);
-            expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-            expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                mercenary = await mercenaries.mercenaries(1);
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
-            await expect(mercenaries.connect(addr1).glorify(1, 'jambon',2,2,2))
-                .to.emit(ergoSum, 'NomenEstOmen')
-                .withArgs(1, 'jambon', '0xpanku' );
+                await expect(mercenaries.connect(addr1).glorify(1, 'jambon',2,2,2))
+                    .to.emit(ergoSum, 'NomenEstOmen')
+                    .withArgs(1, 'jambon', '0xpanku' );
 
-            let mercenary2 = await mercenaries.mercenaries(2);
-            expect(mercenary2['creditor_1']).to.equal('0x0000000000000000000000000000000000000000');
-            expect(mercenary2['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-            expect(mercenary2['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
-        });
+                let mercenary2 = await mercenaries.mercenaries(2);
+                expect(mercenary2['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary2['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary2['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+            });
 
         it("Working naming flow - Check that the free Lend action is not performed if the glorify action fail.  \n" +
             "-> Mint 1 token and set approval to transfer demo20 token \n" +
-            "-> Check token_1 creditor_1 addr0 \n" +
-            "-> Check token_1 creditor_2 addr0 \n" +
-            "-> Check token_1 creditor_3 addr0 \n" +
+            "-> Check token_1 creditor1 addr0 \n" +
+            "-> Check token_1 creditor2 addr0 \n" +
+            "-> Check token_1 creditor3 addr0 \n" +
             "-> Fail to change name to 0xPanku \n" +
-            "-> Check token_1 creditor_1 addr0 \n" +
-            "-> Check token_1 creditor_2 addr0 \n" +
-            "-> Check token_1 creditor_3 addr0 \n" +
+            "-> Check token_1 creditor1 addr0 \n" +
+            "-> Check token_1 creditor2 addr0 \n" +
+            "-> Check token_1 creditor3 addr0 \n" +
             "-> Change name to jambon \n" +
-            "-> Check token_1 creditor_1 msg.sender \n" +
-            "-> Check token_1 creditor_2 addr0 \n" +
-            "-> Check token_1 creditor_3 addr0 \n"
+            "-> Check token_1 creditor1 msg.sender \n" +
+            "-> Check token_1 creditor2 addr0 \n" +
+            "-> Check token_1 creditor3 addr0 \n"
             , async function () {
 
                 await mercenaries.connect(addr1).mint();
                 await demo20.connect(addr1).mint(10);
                 await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
                 let mercenary = await mercenaries.mercenaries(1);
-                expect(mercenary['creditor_1']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
                 mercenaries.connect(addr1).glorify(1, '0xPanku', 1, 1, 1)
 
                 mercenary = await mercenaries.mercenaries(1);
-                expect(mercenary['creditor_1']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
                 await expect(mercenaries.connect(addr1).glorify(1, 'jambon', 1, 1, 1))
                     .to.emit(ergoSum, 'NomenEstOmen')
                     .withArgs(1, 'jambon', '');
 
                 mercenary = await mercenaries.mercenaries(1);
-                expect(mercenary['creditor_1']).to.equal(addr1.address);
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
             });
 
         it("Working naming flow - Check the Lend action for 10 mercenaries \n" +
             "-> Mint 10 token and set approval to transfer demo20 token \n" +
             "-> Recruit the 9 token with addr1 \n" +
-            "-> Check token_1 creditor_1 = addr0 \n" +
-            "-> Check token_2 creditor_1 = addr0 \n" +
-            "-> Check token_3 creditor_1 = addr0 \n" +
+            "-> Check token_1 creditor1 = addr0 \n" +
+            "-> Check token_2 creditor1 = addr0 \n" +
+            "-> Check token_3 creditor1 = addr0 \n" +
             "-> Change name to 0xpanku with addr1 and Lend to token_1, token_2, token_3 \n" +
-            "-> Check token_1 creditor_1 = addr1 \n" +
-            "-> Check token_2 creditor_1 = addr1 \n" +
-            "-> Check token_3 creditor_1 = addr1 \n"
+            "-> Check token_1 creditor1 = addr1 \n" +
+            "-> Check token_2 creditor1 = addr1 \n" +
+            "-> Check token_3 creditor1 = addr1 \n"
             , async function () {
 
                 let amount_claim_1 = "0.01";   // 0.01 ETHER
@@ -408,36 +419,36 @@ describe("Tests ErgoSum.sol contract", function () {
                 expect(await mercenaries.balanceOf(addr1.address)).to.equal(10);
 
                 let mercenary = await mercenaries.mercenaries(1);
-                expect(mercenary['creditor_1']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
                 mercenary = await mercenaries.mercenaries(2);
-                expect(mercenary['creditor_1']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
                 mercenary = await mercenaries.mercenaries(3);
-                expect(mercenary['creditor_1']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
                 await mercenaries.connect(addr1).glorify(1, '0xpanku', 1, 2, 3)
 
                 mercenary = await mercenaries.mercenaries(1);
-                expect(mercenary['creditor_1']).to.equal(addr1.address);
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
                 mercenary = await mercenaries.mercenaries(2);
-                expect(mercenary['creditor_1']).to.equal(addr1.address);
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
                 mercenary = await mercenaries.mercenaries(3);
-                expect(mercenary['creditor_1']).to.equal(addr1.address);
-                expect(mercenary['creditor_2']).to.equal('0x0000000000000000000000000000000000000000');
-                expect(mercenary['creditor_3']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
             });
     });
 });

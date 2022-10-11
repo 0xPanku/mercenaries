@@ -18,8 +18,21 @@ but loyalty of these mad dogs is as tenuous as the virtue of a courtesan.
 ## Sub-folders
 `/contracts` - Solidity contracts as deployed on-chain
 
+`/scripts` - Scripts used to deploy the contracts
+
 `/test` - Tests run on the contracts
 
+## Script
+
+> npx hardhat run scripts/deploy_mercenaries.js --network goerli
+
+This script will deploy the Mercenaries contract with the ErgoSum contact and then bind it.
+
+The network is specified with the option --network. 
+
+The parameters must be adjusted in the script before deployment.
+
+Note : you can use any ERC20 token address as a parameter or deploy a dummy ERC20 token with the deploy_demo20.js script before to deploy the mercenary contract.
 
 ## Tests
 

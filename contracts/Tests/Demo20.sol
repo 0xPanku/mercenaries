@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @dev DO NOT DEPLOY ON PROD. FOR TEST PURPOSE ONLY
+ * @dev This contract is not intended for deployment. It is a dummy contract used for testing purposes.
  */
 contract Demo20 is ERC20, Ownable {
 

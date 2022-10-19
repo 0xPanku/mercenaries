@@ -12,11 +12,11 @@ describe("Tests ErgoSum.sol contract", function () {
     // The ErgoSum contract.
     let ErgoSum, ergoSum;
 
-    let owner, addr1, addr2, addr3, addr4, addr5, addr6, addr7, addr8, addr9, addr10;
+    let owner, addr1, addr2, addr3, addr4, addr5, addr6, addr7, addr8, addr9, addr10, addr11;
 
     beforeEach(async () => {
 
-        [owner, addr1, addr2, addr3, addr4, addr5, addr6, addr7, addr8, addr9, addr10] = await ethers.getSigners();
+        [owner, addr1, addr2, addr3, addr4, addr5, addr6, addr7, addr8, addr9, addr10, addr11 ] = await ethers.getSigners();
 
         Demo20 = await ethers.getContractFactory("Demo20");
         demo20 = await Demo20.deploy();
@@ -376,8 +376,9 @@ describe("Tests ErgoSum.sol contract", function () {
                 await mercenaries.connect(addr8).mint();
                 await mercenaries.connect(addr9).mint();
                 await mercenaries.connect(addr10).mint();
+                await mercenaries.connect(addr11).mint();
 
-                await demo20.connect(addr1).mint(10);
+                await demo20.connect(addr1).mint(100);
                 await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
 
                 // 2 token
@@ -385,16 +386,55 @@ describe("Tests ErgoSum.sol contract", function () {
                     .to.emit(mercenaries, "Recruited");
 
                 // 3 token
-                await expect(mercenaries.connect(addr1).recruit(3,10,0,0, { value: ethers.utils.parseEther(amount_claim_1) }))
+                await expect(mercenaries.connect(addr1).recruit(3,8,8,8, { value: ethers.utils.parseEther(amount_claim_1) }))
                     .to.emit(mercenaries, "Recruited");
+
+                let mercenary = await mercenaries.mercenaries(8);
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
+                await mercenaries.connect(addr1).glorify(3, 'test1', 8, 8, 8)
+
+                mercenary = await mercenaries.mercenaries(8);
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal(addr1.address);
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
 
                 // 4 token
-                await expect(mercenaries.connect(addr1).recruit(4,4,0,0, { value: ethers.utils.parseEther(amount_claim_1) }))
+                await expect(mercenaries.connect(addr1).recruit(4,4,4,0, { value: ethers.utils.parseEther(amount_claim_1) }))
                     .to.emit(mercenaries, "Recruited");
 
+                mercenary = await mercenaries.mercenaries(7);
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
+                await mercenaries.connect(addr1).glorify(4, 'test2', 7, 7, 7)
+
+                mercenary = await mercenaries.mercenaries(7);
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
                 // 5 token
-                await expect(mercenaries.connect(addr1).recruit(5,5,0,0, { value: ethers.utils.parseEther(amount_claim_1) }))
+                await expect(mercenaries.connect(addr1).recruit(5,5,4,0, { value: ethers.utils.parseEther(amount_claim_1) }))
                     .to.emit(mercenaries, "Recruited");
+
+
+                mercenary = await mercenaries.mercenaries(6);
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
+                await mercenaries.connect(addr1).glorify(5, 'test3', 6, 6, 6)
+
+                // 2 lend action from now
+                mercenary = await mercenaries.mercenaries(6);
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal(addr1.address);
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
                 // 6 token
                 await expect(mercenaries.connect(addr1).recruit(6,6,6,0, { value: ethers.utils.parseEther(amount_claim_1) }))
@@ -412,13 +452,27 @@ describe("Tests ErgoSum.sol contract", function () {
                 await expect(mercenaries.connect(addr1).recruit(9,9,9,0, { value: ethers.utils.parseEther(amount_claim_1) }))
                     .to.emit(mercenaries, "Recruited");
 
+                mercenary = await mercenaries.mercenaries(11);
+                expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
+                await mercenaries.connect(addr1).glorify(2, 'test4', 11, 11, 11)
+                expect(await mercenaries.balanceOf(addr1.address)).to.equal(9);
+
+                // 2 lend action
+                mercenary = await mercenaries.mercenaries(11);
+                expect(mercenary['creditor1']).to.equal(addr1.address);
+                expect(mercenary['creditor2']).to.equal(addr1.address);
+                expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
                 // 10 token
                 await expect(mercenaries.connect(addr1).recruit(10,10,10,0, { value: ethers.utils.parseEther(amount_claim_1) }))
                     .to.emit(mercenaries, "Recruited");
 
                 expect(await mercenaries.balanceOf(addr1.address)).to.equal(10);
 
-                let mercenary = await mercenaries.mercenaries(1);
+                mercenary = await mercenaries.mercenaries(1);
                 expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
                 expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
                 expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
@@ -435,6 +489,7 @@ describe("Tests ErgoSum.sol contract", function () {
 
                 await mercenaries.connect(addr1).glorify(1, '0xpanku', 1, 2, 3)
 
+                // 3 lend actions
                 mercenary = await mercenaries.mercenaries(1);
                 expect(mercenary['creditor1']).to.equal(addr1.address);
                 expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');

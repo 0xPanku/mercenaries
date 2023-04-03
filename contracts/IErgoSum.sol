@@ -6,5 +6,5 @@ interface IErgoSum {
 
     function erc20Address() external view returns (address);
 
-    function glorify(uint256 _tokenId, string memory _newName) external;
+    function glorify(uint256 _tokenId, string memory _newName, string memory _oldName) external;
 }

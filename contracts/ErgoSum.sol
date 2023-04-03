@@ -13,8 +13,8 @@ import "./IMercenaries.sol";
  * This contract does not work alone, it must be associated to another contract
  * that will store the name in his own structure (in our case Mercenaries).
  *
- * In order to work the other contract must simply expose two functions
- * getName(uint256 _tokenId) and setName(uint256 _tokenId, string memory _value).
+ * In order to work the other contract must simply expose one function
+ * setName(uint256 _tokenId, string memory _value).
  *
  * To name a token you should call glorify(uint256 _tokenId, string memory _newName)
  * but only the associated contract can do it.
@@ -105,7 +105,6 @@ contract ErgoSum is Ownable {
      * @dev Returns true if the name is valid.
      * Allowed characters are [0-9], [a-z] and spaces.
      * Leading spaces, trailing spaces, or more than one space in a row are not allowed.
-     * NOTE : Only
      */
     function validateName(string memory _str) public view returns (bool) {
 
@@ -150,21 +149,20 @@ contract ErgoSum is Ownable {
      * @dev Change the name of the given token
      * Emit NomenEstOmen if successful
      */
-    function glorify(uint256 _tokenId, string memory _newName) public {
+    function glorify(uint256 _tokenId, string memory _newName, string memory _oldName) public {
         require(msg.sender == mercenaries, "403");
         require(validateName(_newName), "Invalid name");
         require(!isNameReserved(_newName), "Reserved name");
 
         IMercenaries mercenariesCtx = IMercenaries(mercenaries);
-        string memory oldName = mercenariesCtx.getName(_tokenId);
 
-        if (bytes(oldName).length > 0) {
-            nameReserved[keccak256(abi.encode(oldName))] = false;
+        if (bytes(_oldName).length > 0) {
+            nameReserved[keccak256(abi.encode(_oldName))] = false;
         }
 
         nameReserved[keccak256(abi.encode(_newName))] = true;
         mercenariesCtx.setName(_tokenId, _newName);
 
-        emit NomenEstOmen(_tokenId, _newName, oldName);
+        emit NomenEstOmen(_tokenId, _newName, _oldName);
     }
 }

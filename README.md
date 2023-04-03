@@ -1,5 +1,8 @@
 # Mercenaries of Efyria
 
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/kT3y2Ix1sKY/0.jpg)](https://www.youtube.com/watch?v=kT3y2Ix1sKY)
+
+
 Mercenaries of Efyria is a chaotic collection of 999 unique ERC-721 token on the Ethereum blockchain.
 
 "No gods, no masters — as the saying goes."

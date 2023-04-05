@@ -2,8 +2,13 @@
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/kT3y2Ix1sKY/0.jpg)](https://www.youtube.com/watch?v=kT3y2Ix1sKY)
 
+Mercenaries of Efyria is a gamified collection of 999 unique hand-drawn NFTs on Arbitrum.
+It is based upon 3 fundamental concepts:
 
-Mercenaries of Efyria is a chaotic collection of 999 unique ERC-721 token on the Ethereum blockchain.
+- The disruption of private property
+- An innovative on-chain royalties sharing system
+- A smart contract controlled by NFTs owner.
+
 
 "No gods, no masters — as the saying goes."
 
@@ -42,6 +47,8 @@ Note : you can use any ERC20 token address as a parameter or deploy a dummy ERC2
 > npx hardhat test test/mercenaries.js
 
 > npx hardhat test test/ergosum.js
+> 
+> npx hardhat test test/motto.js
 
 ## Links
 

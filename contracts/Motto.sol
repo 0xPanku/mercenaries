@@ -5,8 +5,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IMercenaries.sol";
 
 /**
- *
+ * @title Motto
  * @author 0xPanku
+ * @notice The owner of this contract cannot censor a motto.
+ * @notice It is important to note that by design, this contract does not receive any payment
+ * @notice When a motto is assigned, the MojoMotto event is emitted.
  *
  * @dev The purpose of this contract is to provide a motto to an ERC-721 token.
  * This contract does not work alone, it must be associated to another contract
@@ -49,7 +52,7 @@ contract Motto is Ownable {
     address public erc20Address;
 
     // The address of the mercenaries contract.
-    address public mercenaries;
+    address public immutable mercenaries;
 
     // If a motto has already been reserved
     mapping(bytes32 => bool) private mottoReserved;

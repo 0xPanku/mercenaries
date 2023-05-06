@@ -34,6 +34,32 @@ describe("Tests ErgoSum.sol contract", function () {
         await mercenaries.setErgoSum(ergoSum.address);
     });
 
+    async function mint777() {
+
+        // MINT 777 TOKENS
+        let wallet = [];
+        let wallet_addr = [];
+        let nb = 777;
+        let batch_size = 100;
+        for (let i = 1; i <= nb; i++) {
+            wallet[i] = ethers.Wallet.createRandom();
+            wallet[i] = wallet[i].connect(ethers.provider);
+            wallet_addr.push(wallet[i].address);
+
+            if (i % batch_size === 0) {
+                console.log('mint for x batch :' + wallet_addr.length);
+                await mercenaries.mintForX(wallet_addr);
+                wallet_addr = [];
+            }
+        }
+
+        if (wallet_addr.length > 0) {
+            console.log('mint for x batch :' + wallet_addr.length);
+            await mercenaries.mintForX(wallet_addr);
+        }
+        return wallet;
+    }
+
     describe("Check initial parameters value and update the contract parameters.", () => {
 
         it("Check initial public value : nameMaxLength, namePrice, ERC20 token address, mercenaries contract address", async function () {
@@ -143,51 +169,51 @@ describe("Tests ErgoSum.sol contract", function () {
     });
 
     describe("Check glorify() function for required conditions", () => {
-        it('Call glorify function not with the Mercenaries contract | revert => 403', async function () {
+
+        it('Check revert', async function () {
+
+            let wallets = await mint777();
+
+            await addr1.sendTransaction({to: wallets[1].address, value: ethers.utils.parseEther("1")});
+            await addr1.sendTransaction({to: wallets[2].address, value: ethers.utils.parseEther("1")});
+
+            console.log('Call glorify function not with the Mercenaries contract | revert => 403');
             await expect(ergoSum.connect(addr1).glorify(10, '0xpanku', '')).to.be.revertedWith('403');
-        });
-        it('Call glorify with a non existent tokenId | revert => ERC721: invalid token ID', async function () {
-            await expect(mercenaries.connect(addr1).glorify(10, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC721: invalid token ID');
-        });
-        it('Not the owner of the token | revert => 401', async function () {
-            await mercenaries.connect(addr1).mint();
+
+            console.log('Call glorify with a non existent tokenId | revert => ERC721: invalid token ID');
+            await expect(mercenaries.connect(addr1).glorify(999, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC721: invalid token ID');
+
+            console.log('Not the owner of the token | revert => 401');
             await expect(mercenaries.connect(addr2).glorify(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('401');
-        });
-        it('Call glorify with not enough ERC20 token to pay the price | revert => ERC20 Not enough funds', async function () {
-            await mercenaries.connect(addr1).mint();
-            await expect(mercenaries.connect(addr1).glorify(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC20 Not enough funds');
-        });
-        it('Not enough ERC20 allowance | revert => ERC20 Not enough allowance', async function () {
-            await demo20.connect(addr1).mint(10);
-            await mercenaries.connect(addr1).mint();
-            await expect(mercenaries.connect(addr1).glorify(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC20 Not enough allowance');
-        });
-        it('Call glorify with invalid name | revert => Invalid name', async function () {
-            await demo20.connect(addr1).mint(10);
-            await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("100"));
-            await mercenaries.connect(addr1).mint();
+
+            console.log('Call glorify with not enough ERC20 token to pay the price | revert => ERC20 Not enough funds');
+            await expect(mercenaries.connect(wallets[1]).glorify(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC20 Not enough funds');
+
+            console.log('Not enough ERC20 allowance | revert => ERC20 Not enough allowance');
+            await demo20.connect(wallets[1]).mint(10);
+            await demo20.connect(wallets[2]).mint(10);
+            await expect(mercenaries.connect(wallets[1]).glorify(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC20 Not enough allowance');
+
+            console.log('Call glorify with invalid name | revert => Invalid name');
+            await demo20.connect(wallets[1]).approve(mercenaries.address, ethers.utils.parseEther("100"));
 
             let mercenary = await mercenaries.mercenaries(1);
             expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
             expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
             expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
-            await expect(mercenaries.connect(addr1).glorify(1, '0xPanku', 1, 1, 1)).to.be.revertedWith('Invalid name');
+            await expect(mercenaries.connect(wallets[1]).glorify(1, '0xPanku', 1, 1, 1)).to.be.revertedWith('Invalid name');
 
             mercenary = await mercenaries.mercenaries(1);
             expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
             expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
             expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
-        });
-        it('Call glorify with reserved name | revert => Reserved name', async function () {
-            await demo20.connect(addr1).mint(10);
-            await demo20.connect(addr2).mint(10);
-            await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("100"));
-            await demo20.connect(addr2).approve(mercenaries.address, ethers.utils.parseEther("100"));
-            await mercenaries.connect(addr1).mint();
-            await mercenaries.connect(addr2).mint();
-            await mercenaries.connect(addr1).glorify(1, '0xpanku', 1, 1, 1);
-            await expect(mercenaries.connect(addr2).glorify(2, '0xpanku', 1, 1, 1)).to.be.revertedWith('Reserved name');
+
+            console.log('Call glorify with reserved name | revert => Reserved name');
+            await demo20.connect(wallets[1]).approve(mercenaries.address, ethers.utils.parseEther("100"));
+            await demo20.connect(wallets[2]).approve(mercenaries.address, ethers.utils.parseEther("100"));
+            await mercenaries.connect(wallets[1]).glorify(1, '0xpanku', 1, 1, 1);
+            await expect(mercenaries.connect(wallets[2]).glorify(2, '0xpanku', 1, 1, 1)).to.be.revertedWith('Reserved name');
         });
     });
 
@@ -207,6 +233,8 @@ describe("Tests ErgoSum.sol contract", function () {
             await mercenaries.connect(addr1).mint();
             await demo20.connect(addr1).mint(10);
             await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("100"));
+
+            await mint777();
 
             await expect(mercenaries.connect(addr1).glorify(1, '0xpanku', 1, 1, 1))
                 .to.emit(ergoSum, 'NomenEstOmen')
@@ -232,6 +260,8 @@ describe("Tests ErgoSum.sol contract", function () {
             await demo20.connect(addr1).mint(10);
             await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
 
+            await mint777();
+
             await expect(mercenaries.connect(addr1).glorify(1, '0xpanku', 1, 1, 1))
                 .to.emit(ergoSum, 'NomenEstOmen')
                 .withArgs(1, '0xpanku', '');
@@ -255,20 +285,22 @@ describe("Tests ErgoSum.sol contract", function () {
             "-> Check moon balance addr1 \n" +
             "-> Check moon balance contract", async function () {
 
-            await mercenaries.connect(addr1).mint();
-            await mercenaries.connect(addr2).mint();
-            await demo20.connect(addr2).mint(10);
-            await demo20.connect(addr2).approve(mercenaries.address, ethers.utils.parseEther("1000000"));
+            let wallets = await mint777();
 
-            expect(await demo20.balanceOf(addr2.address)).to.be.equal(ethers.utils.parseEther("10"));
+            await addr1.sendTransaction({to: wallets[1].address, value: ethers.utils.parseEther("1")});
+
+            await demo20.connect(wallets[1]).mint(10);
+            await demo20.connect(wallets[1]).approve(mercenaries.address, ethers.utils.parseEther("1000000"));
+
+            expect(await demo20.balanceOf(wallets[1].address)).to.be.equal(ethers.utils.parseEther("10"));
             expect(await demo20.balanceOf(mercenaries.address)).to.be.equal('0');
-            await expect(mercenaries.connect(addr2).glorify(2, '0xpanku', 1, 1, 1))
-                .to.emit(ergoSum, 'NomenEstOmen')
-                .withArgs(2, '0xpanku', '');
 
-            expect(await demo20.balanceOf(addr2.address)).to.be.equal(ethers.utils.parseEther("9"));
-            // If  LUCKY_7 = 1
-            expect(await demo20.balanceOf(addr1.address)).to.be.equal(ethers.utils.parseEther("0.333333333333333333"));
+            await expect(mercenaries.connect(wallets[1]).glorify(1, '0xpanku', 1, 1, 1))
+                .to.emit(ergoSum, 'NomenEstOmen')
+                .withArgs(1, '0xpanku', '');
+
+            expect(await demo20.balanceOf(wallets[1].address)).to.be.equal(ethers.utils.parseEther("9"));
+            expect(await demo20.balanceOf(wallets[777].address)).to.be.equal(ethers.utils.parseEther("0.333333333333333333"));
             expect(await demo20.balanceOf(mercenaries.address)).to.be.equal(ethers.utils.parseEther("0"));
         });
 
@@ -297,6 +329,8 @@ describe("Tests ErgoSum.sol contract", function () {
 
                 await demo20.connect(addr1).mint(10);
                 await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
+
+                await mint777();
 
                 await expect(mercenaries.connect(addr1).glorify(1, '0xpanku', 1, 1, 1))
                     .to.emit(ergoSum, 'NomenEstOmen')
@@ -339,6 +373,8 @@ describe("Tests ErgoSum.sol contract", function () {
                 expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
                 expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
                 expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
+                await mint777();
 
                 mercenaries.connect(addr1).glorify(1, '0xPanku', 1, 1, 1)
 
@@ -399,6 +435,8 @@ describe("Tests ErgoSum.sol contract", function () {
                 expect(mercenary['creditor1']).to.equal(addr1.address);
                 expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
                 expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
+
+                await mint777();
 
                 await mercenaries.connect(addr1).glorify(3, 'test1', 8, 8, 8)
 

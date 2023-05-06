@@ -2,13 +2,14 @@
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/kT3y2Ix1sKY/0.jpg)](https://www.youtube.com/watch?v=kT3y2Ix1sKY)
 
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/l6W1SzJRHt0/0.jpg)](https://www.youtube.com/watch?v=l6W1SzJRHt0)
+
 Mercenaries of Efyria is a gamified collection of 999 unique hand-drawn NFTs on Arbitrum.
 It is based upon 3 fundamental concepts:
 
 - The disruption of private property
 - An innovative on-chain royalties sharing system
 - A smart contract controlled by NFTs owner.
-
 
 "No gods, no masters — as the saying goes."
 

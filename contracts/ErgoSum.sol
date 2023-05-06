@@ -14,7 +14,7 @@ import "./IMercenaries.sol";
  * that will store the name in his own structure (in our case Mercenaries).
  *
  * In order to work the other contract must simply expose one function
- * setName(uint256 _tokenId, string memory _value).
+ * setMercenaryName(uint256 _tokenId, string memory _value).
  *
  * To name a token you should call glorify(uint256 _tokenId, string memory _newName)
  * but only the associated contract can do it.
@@ -51,7 +51,7 @@ contract ErgoSum is Ownable {
     address public erc20Address;
 
     // The address of the mercenaries contract.
-    address public mercenaries;
+    address public immutable mercenaries;
 
     // If a name has already been reserved
     mapping(bytes32 => bool) private nameReserved;
@@ -161,7 +161,7 @@ contract ErgoSum is Ownable {
         }
 
         nameReserved[keccak256(abi.encode(_newName))] = true;
-        mercenariesCtx.setName(_tokenId, _newName);
+        mercenariesCtx.setMercenaryName(_tokenId, _newName);
 
         emit NomenEstOmen(_tokenId, _newName, _oldName);
     }

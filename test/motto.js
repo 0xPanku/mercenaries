@@ -150,54 +150,53 @@ describe("Tests Motto.sol contract", function () {
     });
 
     describe("Check mottoMojo() function for required conditions", () => {
-        it('Call motto function not with the Mercenaries contract | revert => 403', async function () {
+
+        it('Check revert', async function () {
+
+            let wallets = await mint666();
+
+            await addr1.sendTransaction({to: wallets[1].address, value: ethers.utils.parseEther("1")});
+            await addr1.sendTransaction({to: wallets[2].address, value: ethers.utils.parseEther("1")});
+
+            console.log('Call motto function not with the Mercenaries contract | revert => 403');
             await expect(motto.connect(addr1).motto(10, '0xpanku', '')).to.be.revertedWith('403');
-        });
-        it('Call mottoMojo with a non existent tokenId | revert => ERC721: invalid token ID', async function () {
-            await expect(mercenaries.connect(addr1).mottoMojo(10, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC721: invalid token ID');
-        });
-        it('Not the owner of the token | revert => 401', async function () {
-            await mercenaries.connect(addr1).mint();
-            await expect(mercenaries.connect(addr2).mottoMojo(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('401');
-        });
-        it('Call mottoMojo with not enough ERC20 token to pay the price | revert => ERC20 Not enough funds', async function () {
-            await mercenaries.connect(addr1).mint();
-            await expect(mercenaries.connect(addr1).mottoMojo(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC20 Not enough funds');
-        });
-        it('Not enough ERC20 allowance | revert => ERC20 Not enough allowance', async function () {
-            await demo20.connect(addr1).mint(10);
-            await mercenaries.connect(addr1).mint();
-            await expect(mercenaries.connect(addr1).mottoMojo(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC20 Not enough allowance');
-        });
-        it('Call mottoMojo with invalid motto | revert => Invalid motto', async function () {
-            await demo20.connect(addr1).mint(10);
-            await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("100"));
-            await mercenaries.connect(addr1).mint();
+
+            console.log('Call mottoMojo with a non existent tokenId | revert => ERC721: invalid token ID');
+            await expect(mercenaries.connect(addr1).mottoMojo(999, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC721: invalid token ID');
+
+            console.log('Not the owner of the token | revert => 401');
+            await expect(mercenaries.connect(addr1).mottoMojo(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('401');
+
+            console.log('Call mottoMojo with not enough ERC20 token to pay the price | revert => ERC20 Not enough funds');
+            await expect(mercenaries.connect(wallets[1]).mottoMojo(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC20 Not enough funds');
+
+            console.log('Not enough ERC20 allowance | revert => ERC20 Not enough allowance');
+            await demo20.connect(wallets[1]).mint(10);
+            await demo20.connect(wallets[2]).mint(10);
+            await expect(mercenaries.connect(wallets[1]).mottoMojo(1, '0xpanku', 1, 1, 1)).to.be.revertedWith('ERC20 Not enough allowance');
+
+            console.log('Call mottoMojo with invalid motto | revert => Invalid motto');
+            await demo20.connect(wallets[1]).approve(mercenaries.address, ethers.utils.parseEther("100"));
 
             let mercenary = await mercenaries.mercenaries(1);
             expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
             expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
             expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
-            expect(mercenary['mottoBy']).to.equal('0x0000000000000000000000000000000000000000');
 
-            await expect(mercenaries.connect(addr1).mottoMojo(1, '0xPanku', 1, 1, 1)).to.be.revertedWith('Invalid motto');
+            await expect(mercenaries.connect(wallets[1]).mottoMojo(1, '0xPanku', 1, 1, 1)).to.be.revertedWith('Invalid motto');
 
             mercenary = await mercenaries.mercenaries(1);
             expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
             expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
             expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
-            expect(mercenary['mottoBy']).to.equal('0x0000000000000000000000000000000000000000');
+
+            console.log('Call mottoMojo with reserved name | revert => Reserved name');
+            await demo20.connect(wallets[1]).approve(mercenaries.address, ethers.utils.parseEther("100"));
+            await demo20.connect(wallets[2]).approve(mercenaries.address, ethers.utils.parseEther("100"));
+            await mercenaries.connect(wallets[1]).mottoMojo(1, '0xpanku', 1, 1, 1);
+            await expect(mercenaries.connect(wallets[2]).mottoMojo(2, '0xpanku', 1, 1, 1)).to.be.revertedWith('Reserved motto');
         });
-        it('Call mottoMojo with reserved motto | revert => Reserved motto', async function () {
-            await demo20.connect(addr1).mint(10);
-            await demo20.connect(addr2).mint(10);
-            await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("100"));
-            await demo20.connect(addr2).approve(mercenaries.address, ethers.utils.parseEther("100"));
-            await mercenaries.connect(addr1).mint();
-            await mercenaries.connect(addr2).mint();
-            await mercenaries.connect(addr1).mottoMojo(1, '0xpanku', 1, 1, 1);
-            await expect(mercenaries.connect(addr2).mottoMojo(2, '0xpanku', 1, 1, 1)).to.be.revertedWith('Reserved motto');
-        });
+
     });
 
     describe("Check mottoMojo() - working and complex cases", () => {
@@ -216,6 +215,7 @@ describe("Tests Motto.sol contract", function () {
             await mercenaries.connect(addr1).mint();
             await demo20.connect(addr1).mint(10);
             await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("100"));
+            await mint666();
 
             await expect(mercenaries.connect(addr1).mottoMojo(1, "punk's not dead!", 1, 1, 1))
                 .to.emit(motto, 'MojoMotto')
@@ -246,6 +246,7 @@ describe("Tests Motto.sol contract", function () {
             await demo20.connect(addr2).mint(10);
             await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
             await demo20.connect(addr2).approve(mercenaries.address, ethers.utils.parseEther("1000"));
+            await mint666();
 
             await expect(mercenaries.connect(addr1).mottoMojo(1, '0xpanku', 1, 1, 1))
                 .to.emit(motto, 'MojoMotto')
@@ -282,20 +283,21 @@ describe("Tests Motto.sol contract", function () {
             "-> Check moon balance addr1 \n" +
             "-> Check moon balance contract", async function () {
 
-            await mercenaries.connect(addr1).mint();
-            await mercenaries.connect(addr2).mint();
-            await demo20.connect(addr2).mint(10);
-            await demo20.connect(addr2).approve(mercenaries.address, ethers.utils.parseEther("1000000"));
+            let wallets = await mint666();
+            await addr1.sendTransaction({to: wallets[1].address, value: ethers.utils.parseEther("1")});
 
-            expect(await demo20.balanceOf(addr2.address)).to.be.equal(ethers.utils.parseEther("10"));
+            await demo20.connect(wallets[1]).mint(10);
+            await demo20.connect(wallets[1]).approve(mercenaries.address, ethers.utils.parseEther("1000000"));
+
+            expect(await demo20.balanceOf(wallets[1].address)).to.be.equal(ethers.utils.parseEther("10"));
             expect(await demo20.balanceOf(mercenaries.address)).to.be.equal('0');
-            await expect(mercenaries.connect(addr2).mottoMojo(2, '0xpanku', 1, 1, 1))
-                .to.emit(motto, 'MojoMotto')
-                .withArgs(2, '0xpanku', '');
 
-            expect(await demo20.balanceOf(addr2.address)).to.be.equal(ethers.utils.parseEther("9"));
-            // If  BEAST = 1
-            expect(await demo20.balanceOf(addr1.address)).to.be.equal(ethers.utils.parseEther("0.333333333333333333"));
+            await expect(mercenaries.connect(wallets[1]).mottoMojo(1, '0xpanku', 1, 1, 1))
+                .to.emit(motto, 'MojoMotto')
+                .withArgs(1, '0xpanku', '');
+
+            expect(await demo20.balanceOf(wallets[1].address)).to.be.equal(ethers.utils.parseEther("9"));
+            expect(await demo20.balanceOf(wallets[666].address)).to.be.equal(ethers.utils.parseEther("0.333333333333333333"));
             expect(await demo20.balanceOf(mercenaries.address)).to.be.equal(ethers.utils.parseEther("0"));
         });
 
@@ -324,6 +326,7 @@ describe("Tests Motto.sol contract", function () {
 
                 await demo20.connect(addr1).mint(10);
                 await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
+                await mint666();
 
                 await expect(mercenaries.connect(addr1).mottoMojo(1, '0xpanku', 1, 1, 1))
                     .to.emit(motto, 'MojoMotto')
@@ -362,6 +365,8 @@ describe("Tests Motto.sol contract", function () {
                 await mercenaries.connect(addr1).mint();
                 await demo20.connect(addr1).mint(10);
                 await demo20.connect(addr1).approve(mercenaries.address, ethers.utils.parseEther("1000"));
+                await mint666();
+
                 let mercenary = await mercenaries.mercenaries(1);
                 expect(mercenary['creditor1']).to.equal('0x0000000000000000000000000000000000000000');
                 expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
@@ -427,6 +432,7 @@ describe("Tests Motto.sol contract", function () {
                 expect(mercenary['creditor2']).to.equal('0x0000000000000000000000000000000000000000');
                 expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
 
+                await mint666();
                 await mercenaries.connect(addr1).mottoMojo(3, 'test1', 8, 8, 8)
 
                 mercenary = await mercenaries.mercenaries(8);
@@ -539,4 +545,30 @@ describe("Tests Motto.sol contract", function () {
                 expect(mercenary['creditor3']).to.equal('0x0000000000000000000000000000000000000000');
             });
     });
+
+    async function mint666() {
+
+        // MINT 777 TOKENS
+        let wallet = [];
+        let wallet_addr = [];
+        let nb = 666;
+        let batch_size = 100;
+        for (let i = 1; i <= nb; i++) {
+            wallet[i] = ethers.Wallet.createRandom();
+            wallet[i] = wallet[i].connect(ethers.provider);
+            wallet_addr.push(wallet[i].address);
+
+            if (i % batch_size === 0) {
+                console.log('mint for x batch :' + wallet_addr.length);
+                await mercenaries.mintForX(wallet_addr);
+                wallet_addr = [];
+            }
+        }
+
+        if (wallet_addr.length > 0) {
+            console.log('mint for x batch :' + wallet_addr.length);
+            await mercenaries.mintForX(wallet_addr);
+        }
+        return wallet;
+    }
 });
